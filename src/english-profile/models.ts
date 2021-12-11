@@ -1,12 +1,12 @@
 interface WordBaseData {
   baseWord: string;
   level: string;
+  partOfSpeech: string;
   wordDetailsUrl: string;
 }
 
 export interface WordMetadata extends WordBaseData {
   guideWord: string;
-  partOfSpeech: string;
   topic: string;
 }
 
@@ -22,12 +22,10 @@ export interface LearnerExample {
 
 export interface WordInfoData extends WordBaseData {
   headword: string,
-  partOfSpeech: string,
   audioSourceUrl?: string,
   transcription: string,
   wordFamilies: WordFamily[],
   infoTitle: string;
-  level: string;
   grammar?: string;
   definition: string;
   dictionaryExamples: string[];

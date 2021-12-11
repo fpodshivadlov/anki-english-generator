@@ -2,6 +2,10 @@ import { JSDOM } from 'jsdom';
 
 import { WordInfoData, WordMetadata } from './models';
 
+function extractTextContent(node) {
+  return node?.textContent?.trim() ?? '';
+}
+
 export function parseListHtml(html: string): WordMetadata[] {
   const wordsDom = new JSDOM(html);
   const document = wordsDom.window.document;
@@ -9,11 +13,11 @@ export function parseListHtml(html: string): WordMetadata[] {
   let result = [];
   const trsNodes = document.querySelectorAll('tbody tr');
   for (const trNode of trsNodes) {
-    const baseWord = trNode.querySelector('td:nth-child(1)').textContent;
-    const guideWord = trNode.querySelector('td:nth-child(2)').textContent;
-    const level = trNode.querySelector('td:nth-child(3) .label').textContent;
-    const partOfSpeech = trNode.querySelector('td:nth-child(4)').textContent;
-    const topic = trNode.querySelector('td:nth-child(5)').textContent;
+    const baseWord = extractTextContent(trNode.querySelector('td:nth-child(1)'));
+    const guideWord = extractTextContent(trNode.querySelector('td:nth-child(2)'));
+    const level = extractTextContent(trNode.querySelector('td:nth-child(3) .label'));
+    const partOfSpeech = extractTextContent(trNode.querySelector('td:nth-child(4)'));
+    const topic = extractTextContent(trNode.querySelector('td:nth-child(5)'));
     const wordDetailsUrl = trNode.querySelector('td:last-child a').href;
     
     if (!wordDetailsUrl) {
@@ -47,30 +51,30 @@ function parseWordInfo(word: WordMetadata, infoNode: ParentNode, baseInfoNode: P
   
     const wordFamilies = Array.from(wordFamilyNodes).map((div) => {
       return {
-        partOfSpeech: div.querySelector('.wf_pos').textContent,
+        partOfSpeech: extractTextContent(div.querySelector('.wf_pos')),
         words: Array.from(div.querySelectorAll('.wf_word'))
-          .map(c => c.textContent),
+          .map(c => extractTextContent(c)),
       };
     });
 
     const learnerNode = infoNode.querySelector('.learner');
     const learnerExample = learnerNode ? {
-      example: learnerNode.querySelector('.learnerexamp').textContent,
-      cite: learnerNode.querySelector('.cite').textContent,
+      example: extractTextContent(learnerNode.querySelector('.learnerexamp')),
+      cite: extractTextContent(learnerNode.querySelector('.cite')),
     } : null;
 
     return {
       baseWord: word.baseWord,
       wordDetailsUrl: word.wordDetailsUrl,
-      headword: baseInfoNode.querySelector('.headword').textContent,
-      partOfSpeech: baseInfoNode.querySelector('.pos').textContent,
-      transcription: baseInfoNode.querySelector('.written').textContent,
+      headword: extractTextContent(baseInfoNode.querySelector('.headword')),
+      partOfSpeech: extractTextContent(baseInfoNode.querySelector('.pos')),
+      transcription: extractTextContent(baseInfoNode.querySelector('.written')),
       wordFamilies,
-      infoTitle: infoNode.querySelector('.sense_title').textContent,
-      level: infoNode.querySelector('.label').textContent,
-      grammar: infoNode.querySelector('.grammar')?.textContent,
-      definition: infoNode.querySelector('.definition')?.textContent,
-      dictionaryExamples: Array.from(dictionaryExampleNodes).map(p => p?.textContent),
+      infoTitle: extractTextContent(infoNode.querySelector('.sense_title')),
+      level: extractTextContent(infoNode.querySelector('.label')),
+      grammar: extractTextContent(infoNode.querySelector('.grammar')),
+      definition: extractTextContent(infoNode.querySelector('.definition')),
+      dictionaryExamples: Array.from(dictionaryExampleNodes).map(p => extractTextContent(p)),
       learnerExample: learnerExample,
     };
 	}
@@ -78,6 +82,10 @@ function parseWordInfo(word: WordMetadata, infoNode: ParentNode, baseInfoNode: P
 		console.error(`Error caught for ${word.wordDetailsUrl}: ${error.message}\n${JSON.stringify(word)}`);
 		throw(error);
 	}
+}
+
+function sameOrEmpty(value1: string, value2: string) {
+  return value1 === '' || value2 === '' || value1 === value2;
 }
 
 export async function parseWordHtml(html: string, word: WordMetadata): Promise<WordInfoData> {
@@ -89,17 +97,29 @@ export async function parseWordHtml(html: string, word: WordMetadata): Promise<W
     expectedWordTitle += ` (${word.guideWord})`;
   }
 
+  const resolvedWordDetailsList: WordInfoData[] = [];
   const baseInfoNodes = document.querySelectorAll('.pos_section');
   for (const baseInfoNode of baseInfoNodes) {
     const infoNodes = baseInfoNode.querySelectorAll('.info.sense');
     for (const infoNode of infoNodes) {
-      const infoBody = parseWordInfo(word, infoNode, baseInfoNode);
-      if (infoBody.infoTitle == expectedWordTitle) {
-        return infoBody;
+      const resolvedWordDetails = parseWordInfo(word, infoNode, baseInfoNode);
+      if (resolvedWordDetails.infoTitle == expectedWordTitle) {
+        return resolvedWordDetails;
       }
+      resolvedWordDetailsList.push(resolvedWordDetails);
     }
   }
+  console.info(`'${word.baseWord}': no exact meaning found for '${expectedWordTitle}' on ${word.wordDetailsUrl}, trying to fallback`);
   
-  console.warn(`'${word.baseWord}': no meaning found for '${expectedWordTitle}' on ${word.wordDetailsUrl}`);
+  expectedWordTitle = `${word.baseWord}`;
+  const fallbackMatchedList = resolvedWordDetailsList
+    .filter(x => sameOrEmpty(x.infoTitle, expectedWordTitle)
+      && sameOrEmpty(x.level, word.level)
+      && sameOrEmpty(x.partOfSpeech, word.partOfSpeech));
+  if (fallbackMatchedList.length === 1) {
+    return fallbackMatchedList[0];
+  }
+
+  console.warn(`'${word.baseWord}': no exact (${fallbackMatchedList.length}) fallback meaning found for '${expectedWordTitle}' on ${word.wordDetailsUrl}`);
   return null;
 }
