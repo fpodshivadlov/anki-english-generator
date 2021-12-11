@@ -4,21 +4,27 @@ import { parseListHtml, parseWordHtml } from './parser';
 
 export * from './models';
 
-export async function fetchEnglishProfile(levelsFilter?: string[], topicFilter?: string): Promise<WordInfoData[]> {
+export async function fetchEnglishProfile(
+    levelsFilter?: string[],
+    topicFilter?: string,
+    wordsFilter?: string[])
+    : Promise<WordInfoData[]> {
   console.log(`Processing the word list`);
   const listHtml = await fetchWordsHtml(levelsFilter, topicFilter);
   const wordList = parseListHtml(listHtml);
-  console.log(`Total word count: '${wordList.length})`);
+  console.log(`Total word count: ${wordList.length})`);
 
   let result = [];
   for (const word of wordList) {
+    if (wordsFilter && !wordsFilter.includes(word.baseWord))
+      continue;
+
     console.log(`Processing the word '${word.baseWord}' (level: ${word.level}, guide word: ${word.guideWord})`);
     const wordHtml = await fetchWordDetails(word.wordDetailsUrl);
     const wordDetails = await parseWordHtml(wordHtml, word);
-
-    if (wordDetails)
-      result.push(wordDetails);
+    result.push(wordDetails);
   }
 
-  return result;
+  return result
+    .filter(w => w);
 }

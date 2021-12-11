@@ -1,8 +1,9 @@
 import yargs from 'yargs';
-import { createAnkiCsvImportFile } from './ankiCsv';
 
-import { fetchEnglishProfile } from './english-profile';
 import { CEFR_LEVELS, TOPICS } from './models';
+import { fileExistsOrNotSet, loadWordListFileIfSet } from './fileUtils';
+import { fetchEnglishProfile } from './english-profile';
+import { createAnkiCsvImportFile } from './ankiCsv';
 
 async function execute() {
   const argv = await yargs(process.argv)
@@ -19,15 +20,23 @@ async function execute() {
       type: 'string',
       choices: Object.keys(TOPICS),
     })
+    .option('filterWordList', {
+      alias: 'w',
+      description: 'Path to word list file. Each word is on a new line',
+      type: 'string',
+    })
     .option('outputFile', {
       alias: 'o',
       description: 'Output Filename',
       type: 'string',
       default: 'ankiCollection',
     })
+    .check((argv) => fileExistsOrNotSet(argv.filterWordList))
     .parseAsync();
 
-  const wordsDetails = await fetchEnglishProfile(argv.filterLevel, argv.filterTopic);
+  const wordsFilter: string[] = await loadWordListFileIfSet(argv.filterWordList);
+
+  const wordsDetails = await fetchEnglishProfile(argv.filterLevel, argv.filterTopic, wordsFilter);
 
   await createAnkiCsvImportFile(wordsDetails, argv.outputFile);
 }
