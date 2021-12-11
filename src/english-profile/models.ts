@@ -1,10 +1,13 @@
-export interface WordMetadata {
+interface WordBaseData {
   baseWord: string;
-  guideWord: string;
   level: string;
+  wordDetailsUrl: string;
+}
+
+export interface WordMetadata extends WordBaseData {
+  guideWord: string;
   partOfSpeech: string;
   topic: string;
-  wordDetailsUrl: string;
 }
 
 export interface WordFamily {
@@ -17,7 +20,7 @@ export interface LearnerExample {
   cite?: string;
 }
 
-export interface WordInfoData {
+export interface WordInfoData extends WordBaseData {
   headword: string,
   partOfSpeech: string,
   audioSourceUrl?: string,

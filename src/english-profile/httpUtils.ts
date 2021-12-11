@@ -26,7 +26,7 @@ export async function fetchHtmlCached(url: string, fetchOptions: AxiosRequestCon
   } else {
     fs.mkdirSync(cacheDirPath, { recursive: true });
     const html = await fetchHtml(url, fetchOptions);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     fs.writeFileSync(cachePath, html);
     console.debug(` page cached: ${url}`);
     return html;

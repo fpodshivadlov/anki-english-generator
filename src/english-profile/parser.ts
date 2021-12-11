@@ -60,6 +60,8 @@ function parseWordInfo(word: WordMetadata, infoNode: ParentNode, baseInfoNode: P
     } : null;
 
     return {
+      baseWord: word.baseWord,
+      wordDetailsUrl: word.wordDetailsUrl,
       headword: baseInfoNode.querySelector('.headword').textContent,
       partOfSpeech: baseInfoNode.querySelector('.pos').textContent,
       transcription: baseInfoNode.querySelector('.written').textContent,

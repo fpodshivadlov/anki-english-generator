@@ -12,10 +12,12 @@ export async function fetchEnglishProfile(levelsFilter?: string[]): Promise<Word
 
   let result = [];
   for (const word of wordList) {
-    console.log(`Processing the word '${word.baseWord}' '${word.guideWord}' (${word.level})`);
+    console.log(`Processing the word '${word.baseWord}' (level: ${word.level}, guide word: ${word.guideWord})`);
     const wordHtml = await fetchWordDetails(word.wordDetailsUrl);
     const wordDetails = await parseWordHtml(wordHtml, word);
-    result.push(wordDetails);
+
+    if (wordDetails)
+      result.push(wordDetails);
   }
 
   return result;
