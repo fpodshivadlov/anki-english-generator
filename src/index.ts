@@ -2,7 +2,7 @@ import yargs from 'yargs';
 import { createAnkiCsvImportFile } from './ankiCsv';
 
 import { fetchEnglishProfile } from './english-profile';
-import { CEFR_LEVELS } from './models';
+import { CEFR_LEVELS, TOPICS } from './models';
 
 async function execute() {
   const argv = await yargs(process.argv)
@@ -13,6 +13,12 @@ async function execute() {
       type: 'string',
       choices: Object.keys(CEFR_LEVELS),
     })
+    .option('filterTopic', {
+      alias: 't',
+      description: 'Filter topic',
+      type: 'string',
+      choices: Object.keys(TOPICS),
+    })
     .option('outputFile', {
       alias: 'o',
       description: 'Output Filename',
@@ -21,7 +27,7 @@ async function execute() {
     })
     .parseAsync();
 
-  const wordsDetails = await fetchEnglishProfile(argv.filterLevel);
+  const wordsDetails = await fetchEnglishProfile(argv.filterLevel, argv.filterTopic);
 
   await createAnkiCsvImportFile(wordsDetails, argv.outputFile);
 }

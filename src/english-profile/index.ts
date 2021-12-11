@@ -4,9 +4,9 @@ import { parseListHtml, parseWordHtml } from './parser';
 
 export * from './models';
 
-export async function fetchEnglishProfile(levelsFilter?: string[]): Promise<WordInfoData[]> {
+export async function fetchEnglishProfile(levelsFilter?: string[], topicFilter?: string): Promise<WordInfoData[]> {
   console.log(`Processing the word list`);
-  const listHtml = await fetchWordsHtml(levelsFilter);
+  const listHtml = await fetchWordsHtml(levelsFilter, topicFilter);
   const wordList = parseListHtml(listHtml);
   console.log(`Total word count: '${wordList.length})`);
 
