@@ -2,14 +2,35 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "node",
+      "name": "(Windows) Debug App",
+      "type": "cppvsdbg",
       "request": "launch",
-      "name": "Launch",
-      "program": "${workspaceFolder}/src/index.ts",
-      "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "program": "${workspaceRoot}/target/debug/anki-english-generator.exe",
+      "args": [
+        "-l", "a1",
+        "-t", "technology",
+        "-w", "${workspaceRoot}/.vscode/data/words.txt"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceRoot}",
+      "environment": [
+        { "name": "RUSTFLAGS", "value": "-Awarnings" },
+        { "name": "RUST_BACKTRACE", "value": "0" },
+      ],
+      "console": "internalConsole",
+      "preLaunchTask": "cargo-build-app",
+    },
+    {
+      "name": "(Windows) Debug Tests",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/deps/anki_english_generator-c671eee1ac430a98.exe",
+      "args": [],
+      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "args": ["-l", "A1", "-t", "travel", "-o", "out/result"]
-    }
+      "environment": [],
+      "console": "internalConsole",
+      "preLaunchTask": "cargo-build-test",
+    },
   ]
 }

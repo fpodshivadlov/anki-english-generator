@@ -5,10 +5,10 @@ The console app to generate the Anki cards based on [englishprofile.org](https:/
 ## Usage
 
 ```console
-npm install
+cargo build
 
-npm start -- --help
-npm start -- --filterLevel A1 --filterTopic technology --outputFile ./out/result
+cargo run -- --help
+cargo run -- --filter-level a1 --filter-topic technology --output-file ./out/result
 ```
 
 ## Debugging
